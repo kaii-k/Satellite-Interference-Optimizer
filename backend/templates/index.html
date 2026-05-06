@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Interference Optimizer</title>
+
+
+<!-- CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+
+</head>
+
+<body>
+
+<div class="container">
+
+
+<!-- HEADER -->
+<div class="header">
+    <img src="{{ url_for('static', filename='satellite.png') }}" alt="satellite">
+    <h1>Satellite Interference Optimizer</h1>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+    <label>Grid Size:</label>
+    <input type="number" id="size" value="8" min="4" max="15">
+
+    <button onclick="generateGrid()">Generate</button>
+    <button onclick="solve()">Solve</button>
+</div>
+
+<!-- LEGEND -->
+<div id="legend">
+    Empty | Blocked | Priority | Station
+</div>
+
+<!-- GRID -->
+<div id="grid"></div>
+
+<!-- RESULT -->
+<p id="result">Coverage Score: 0</p>
+
+
+</div>
+
+<!-- JS -->
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
