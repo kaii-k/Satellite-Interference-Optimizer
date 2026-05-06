@@ -1,55 +1,65 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Satellite Interference Optimizer</title>
-
-
-<!-- CSS -->
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Satellite Interference Optimizer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
+<div class="scanlines"></div>
+<div class="wrap">
 
-<div class="container">
-
-
-<!-- HEADER -->
-<div class="header">
-    <img src="{{ url_for('static', filename='satellite.png') }}" alt="satellite">
+  <div class="hdr">
+    <span class="hdr-icon">🛰️</span>
     <h1>Satellite Interference Optimizer</h1>
+    <div class="sub">Grid-based orbital placement solver &middot; Click cells to configure</div>
+  </div>
+
+  <div class="panel">
+    <div class="ctrl-row">
+      <div class="ctrl-group">
+        <label for="size">Grid Size</label>
+        <input type="number" id="size" value="8" min="4" max="15">
+      </div>
+      <button class="btn" id="generateBtn">&#8635; Generate</button>
+      <button class="btn primary" id="solveBtn">&#9654; Solve</button>
+      <button class="btn danger" id="clearBtn">&#10005; Clear</button>
+    </div>
+    <div class="click-hint">
+      Click cell: <span style="color:var(--text)">empty</span>
+      &rarr; <span style="color:var(--red)">blocked</span>
+      &rarr; <span style="color:var(--amber)">priority</span>
+      &rarr; <span style="color:var(--text)">empty</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="legend">
+      <div class="leg-item"><div class="swatch empty"></div>Empty</div>
+      <div class="leg-item"><div class="swatch blocked"></div>Blocked</div>
+      <div class="leg-item"><div class="swatch priority"></div>Priority (&times;2 score)</div>
+      <div class="leg-item"><div class="swatch station"></div>Station placed</div>
+    </div>
+    <div class="grid-outer" id="gridOuter">
+      <div id="grid"></div>
+      <canvas id="overlay"></canvas>
+    </div>
+  </div>
+
+  <div class="score-bar">
+    <div>
+      <div class="score-label">Coverage Score</div>
+      <div class="score-val" id="scoreVal">&mdash;</div>
+      <div class="score-sub" id="scoreSub">Run solve to compute</div>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <div class="status-txt" id="statusTxt">IDLE</div>
+      <div class="status-dot" id="statusDot"></div>
+    </div>
+  </div>
+
 </div>
-
-<!-- CONTROLS -->
-<div class="controls">
-    <label>Grid Size:</label>
-    <input type="number" id="size" value="8" min="4" max="15">
-
-    <button onclick="generateGrid()">Generate</button>
-    <button onclick="solve()">Solve</button>
-</div>
-
-<!-- LEGEND -->
-<div id="legend">
-    Empty | Blocked | Priority | Station
-</div>
-
-<!-- GRID -->
-<div id="grid"></div>
-
-<!-- RESULT -->
-<p id="result">Coverage Score: 0</p>
-
-
-</div>
-
-<!-- JS -->
-
 <script src="{{ url_for('static', filename='script.js') }}"></script>
-
 </body>
 </html>

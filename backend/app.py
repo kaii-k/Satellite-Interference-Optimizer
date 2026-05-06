@@ -1,94 +1,69 @@
-from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS
-import copy
+from flask import Flask, render_template, request, jsonify
+import itertools
 
 app = Flask(__name__)
-CORS(app)
 
-DIRECTIONS = [
-    (1,0),(-1,0),(0,1),(0,-1),
-    (1,1),(1,-1),(-1,1),(-1,-1)
-]
 
-@app.route("/")
-def home():
-    return render_template("index.html")
-
-def is_safe(board, grid, row, col, N):
-    for dx, dy in DIRECTIONS:
-        x, y = row + dx, col + dy
-        while 0 <= x < N and 0 <= y < N:
-            if board[x][y] == 1:
-                return False
-            if grid[x][y] == 'X':
-                break
-            x += dx
-            y += dy
-    return True
-
-def count_coverage(board, grid, N):
-    covered = set()
-
-    for i in range(N):
-        for j in range(N):
-            if board[i][j] == 1:
-                for dx, dy in DIRECTIONS:
-                    x, y = i + dx, j + dy
-                    while 0 <= x < N and 0 <= y < N:
-                        if grid[x][y] == 'P':
-                            covered.add((x, y))
-                        if grid[x][y] == 'X':
-                            break
-                        x += dx
-                        y += dy
-
-    return len(covered)
-
-def solve(grid):
+def solve_grid(grid):
     N = len(grid)
-    board = [[0]*N for _ in range(N)]
+
+    # Find all valid (non-blocked) cells
+    valid = [(i, j) for i in range(N) for j in range(N) if grid[i][j] != 'X']
+
+    # Score a cell: priority cells worth 2, normal worth 1
+    def cell_score(i, j):
+        return 2 if grid[i][j] == 'P' else 1
+
+    # Check if two stations interfere (same row, col, or diagonal)
+    def interferes(a, b):
+        return (a[0] == b[0] or a[1] == b[1] or
+                abs(a[0] - b[0]) == abs(a[1] - b[1]))
 
     best_solution = None
     best_score = -1
 
-    def backtrack(row):
+    # Backtracking solver
+    def backtrack(placed, remaining, score):
         nonlocal best_solution, best_score
 
-        if row == N:
-            score = count_coverage(board, grid, N)
-            if score > best_score:
-                best_score = score
-                best_solution = copy.deepcopy(board)
-            return
+        if score > best_score:
+            best_score = score
+            best_solution = list(placed)
 
-        for col in range(N):
-            if grid[row][col] == 'X':
+        for idx, cell in enumerate(remaining):
+            i, j = cell
+            # Check no interference with already placed stations
+            if any(interferes(cell, p) for p in placed):
                 continue
+            new_remaining = [c for k, c in enumerate(remaining) if k > idx and not interferes(cell, c)]
+            backtrack(placed + [cell], new_remaining, score + cell_score(i, j))
 
-            if is_safe(board, grid, row, col, N):
-                board[row][col] = 1
-                backtrack(row + 1)
-                board[row][col] = 0
+    backtrack([], valid, 0)
 
-        backtrack(row + 1)
+    # Build solution matrix
+    sol = [[0] * N for _ in range(N)]
+    if best_solution:
+        for (i, j) in best_solution:
+            sol[i][j] = 1
 
-    backtrack(0)
-
-    return best_solution, best_score
-
-
-@app.route("/solve", methods=["POST"])
-def solve_api():
-    data = request.json
-    grid = data["grid"]
-
-    solution, score = solve(grid)
-
-    return jsonify({
-        "solution": solution,
-        "score": score
-    })
+    return sol, best_score
 
 
-if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=8000, debug=True)
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/solve', methods=['POST'])
+def solve():
+    data = request.get_json()
+    grid = data.get('grid', [])
+    if not grid:
+        return jsonify({'error': 'No grid provided'}), 400
+
+    solution, score = solve_grid(grid)
+    return jsonify({'solution': solution, 'score': score})
+
+
+if __name__ == '__main__':
+    app.run(debug=True, host='127.0.0.1', port=5001)
